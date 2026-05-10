@@ -5,17 +5,17 @@ default: &default
 
 development:
   <<: *default
-  host: <%= ENV.fetch("BOOKLY_DATABASE_HOST", "localhost") %>
-  username: <%= ENV.fetch("BOOKLY_DATABASE_USERNAME") %>
-  password: <%= ENV.fetch("BOOKLY_DATABASE_PASSWORD") %>
-  database: <%= ENV.fetch("BOOKLY_DATABASE_DEVELOPMENT") %>
+  host: <%= ENV["BOOKLY_DATABASE_HOST"] || "localhost" %>
+  username: <%= ENV["BOOKLY_DATABASE_USERNAME"] %>
+  password: <%= ENV["BOOKLY_DATABASE_PASSWORD"] %>
+  database: <%= ENV["BOOKLY_DATABASE_DEVELOPMENT"] %>
 
 test:
   <<: *default
-  host: <%= ENV.fetch("BOOKLY_DATABASE_HOST", "localhost") %>
-  username: <%= ENV.fetch("BOOKLY_DATABASE_USERNAME") %>
-  password: <%= ENV.fetch("BOOKLY_DATABASE_PASSWORD") %>
-  database: <%= ENV.fetch("BOOKLY_DATABASE_TEST") %>
+  host: <%= ENV["BOOKLY_DATABASE_HOST"] || "localhost" %>
+  username: <%= ENV["BOOKLY_DATABASE_USERNAME"] %>
+  password: <%= ENV["BOOKLY_DATABASE_PASSWORD"] %>
+  database: <%= ENV["BOOKLY_DATABASE_TEST"] %>
 
 production:
   <<: *default
