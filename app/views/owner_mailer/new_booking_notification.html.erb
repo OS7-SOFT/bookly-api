@@ -1,0 +1,20 @@
+<h1>New booking received</h1>
+
+<p>Hello <%= @owner.full_name %>,</p>
+
+<p>You have received a new booking.</p>
+
+<ul>
+  <li><strong>Business:</strong> <%= @business.name %></li>
+  <li><strong>Service:</strong> <%= @bookable_service.name %></li>
+  <li><strong>Customer:</strong> <%= @booking.customer_name %></li>
+  <li><strong>Phone:</strong> <%= @booking.customer_phone %></li>
+  <li><strong>Email:</strong> <%= @booking.customer_email.presence || "Not provided" %></li>
+  <li><strong>Start:</strong> <%= @booking.start_at.strftime("%Y-%m-%d %H:%M") %></li>
+  <li><strong>End:</strong> <%= @booking.end_at.strftime("%Y-%m-%d %H:%M") %></li>
+  <li><strong>Status:</strong> <%= @booking.status.humanize %></li>
+</ul>
+
+<% if @booking.notes.present? %>
+  <p><strong>Notes:</strong> <%= @booking.notes %></p>
+<% end %>
