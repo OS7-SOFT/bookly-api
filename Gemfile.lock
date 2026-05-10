@@ -307,15 +307,6 @@ GEM
     securerandom (0.4.1)
     shoulda-matchers (7.0.1)
       activesupport (>= 7.1)
-    solid_cable (3.0.12)
-      actioncable (>= 7.2)
-      activejob (>= 7.2)
-      activerecord (>= 7.2)
-      railties (>= 7.2)
-    solid_cache (1.0.10)
-      activejob (>= 7.2)
-      activerecord (>= 7.2)
-      railties (>= 7.2)
     solid_queue (1.4.0)
       activejob (>= 7.1)
       activerecord (>= 7.1)
@@ -372,8 +363,6 @@ DEPENDENCIES
   rswag-ui
   rubocop-rails-omakase
   shoulda-matchers
-  solid_cable
-  solid_cache
   solid_queue
   sqlite3 (>= 2.1)
   thruster
