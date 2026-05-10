@@ -144,6 +144,7 @@ class CreateBookingService
     )
 
     if booking.save
+      enqueue_new_booking_notification(booking)
       success(booking)
     else
       failure(booking.errors.full_messages)
@@ -183,5 +184,11 @@ class CreateBookingService
       booking: nil,
       errors: Array(extra_errors || errors)
     )
+  end
+
+  def enqueue_new_booking_notification(booking)
+    NewBookingNotificationJob.perform_later(booking.id)
+  rescue StandardError => e
+    Rails.logger.error("Failed to enqueue new booking notification: #{e.message}")
   end
 end

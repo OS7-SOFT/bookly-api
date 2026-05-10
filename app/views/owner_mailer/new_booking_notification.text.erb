@@ -1,0 +1,18 @@
+New booking received
+
+Hello <%= @owner.full_name %>,
+
+You have received a new booking.
+
+Business: <%= @business.name %>
+Service: <%= @bookable_service.name %>
+Customer: <%= @booking.customer_name %>
+Phone: <%= @booking.customer_phone %>
+Email: <%= @booking.customer_email.presence || "Not provided" %>
+Start: <%= @booking.start_at.strftime("%Y-%m-%d %H:%M") %>
+End: <%= @booking.end_at.strftime("%Y-%m-%d %H:%M") %>
+Status: <%= @booking.status.humanize %>
+
+<% if @booking.notes.present? %>
+Notes: <%= @booking.notes %>
+<% end %>
