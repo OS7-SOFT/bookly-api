@@ -1,6 +1,8 @@
 require "rails_helper"
+require "active_job/test_helper"
 
 RSpec.describe CreateBookingService do
+  include ActiveJob::TestHelper
   describe ".call" do
     let!(:user) do
       User.create!(
@@ -80,6 +82,13 @@ RSpec.describe CreateBookingService do
 
         expect(result.booking.start_at.to_i).to eq(start_at.to_i)
         expect(result.booking.end_at.to_i).to eq((start_at + 30.minutes).to_i)
+      end
+
+      it "enqueues new booking notification job" do
+        clear_enqueued_jobs
+        expect {
+          described_class.call(**valid_params)
+        }.to have_enqueued_job(NewBookingNotificationJob)
       end
     end
 
