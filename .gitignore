@@ -1,0 +1,73 @@
+# Dependencies
+.bundle
+/vendor/bundle
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Rails master key / credentials
+/config/master.key
+/config/credentials/*.key
+
+# Logs
+/log/*
+!/log/.keep
+
+# Temp files
+/tmp/*
+!/tmp/.keep
+/tmp/pids/*
+!/tmp/pids/.keep
+/tmp/cache/*
+!/tmp/cache/.keep
+/tmp/storage/*
+!/tmp/storage/.keep
+
+# Storage / uploads
+/storage/*
+!/storage/.keep
+
+# SQLite databases
+/db/*.sqlite3
+/db/*.sqlite3-*
+/db/*.sqlite3-journal
+
+# PostgreSQL dumps / backups
+*.dump
+*.sql
+*.backup
+
+# Test / coverage
+/coverage
+/spec/tmp
+.rspec_status
+
+# Swagger generated docs
+# اتركها إذا تريد رفع التوثيق مع المشروع
+# /swagger
+
+# Bootsnap
+/tmp/cache/bootsnap*
+
+# Node / frontend assets if added later
+/node_modules
+/yarn-error.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea
+.vscode/*
+!.vscode/settings.json
+*.swp
+*.swo
+
+# Docker local overrides
+docker-compose.override.yml
+
+# Byebug / debug
+.byebug_history

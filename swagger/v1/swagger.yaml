@@ -1,0 +1,1541 @@
+---
+openapi: 3.0.1
+info:
+  title: Bookly API
+  version: v1
+  description: Backend API for managing service-based bookings and appointments.
+servers:
+- url: http://localhost:3000
+  description: Local development server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Validation failed
+        errors:
+          type: array
+          items:
+            type: string
+          example:
+          - Name can't be blank
+      required:
+      - success
+      - message
+      - errors
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed successfully
+        data:
+          type: object
+      required:
+      - success
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        full_name:
+          type: string
+          example: Osama Yeslam
+        email:
+          type: string
+          example: osama@example.com
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - full_name
+      - email
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Logged in successfully
+        data:
+          type: object
+          properties:
+            user:
+              "$ref": "#/components/schemas/User"
+            token:
+              type: string
+              example: jwt.token.here
+          required:
+          - user
+          - token
+      required:
+      - success
+      - message
+      - data
+    BookableService:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        business_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Consultation
+        description:
+          type: string
+          nullable: true
+          example: Software consultation session
+        duration_minutes:
+          type: integer
+          example: 30
+        price:
+          type: string
+          example: '20.0'
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - business_id
+      - name
+      - duration_minutes
+      - price
+      - is_active
+    Business:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Bookly Center
+        description:
+          type: string
+          nullable: true
+          example: We provide consulting services
+        phone:
+          type: string
+          nullable: true
+          example: '777777777'
+        email:
+          type: string
+          nullable: true
+          example: info@example.com
+        address:
+          type: string
+          nullable: true
+          example: Aden - Yemen
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - user_id
+      - name
+      - is_active
+    WorkingHour:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        business_id:
+          type: integer
+          example: 1
+        day_of_week:
+          type: string
+          example: sunday
+        start_time:
+          type: string
+          nullable: true
+          example: '09:00'
+        end_time:
+          type: string
+          nullable: true
+          example: '17:00'
+        is_closed:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - business_id
+      - day_of_week
+      - is_closed
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        business_id:
+          type: integer
+          example: 1
+        bookable_service_id:
+          type: integer
+          example: 1
+        customer_name:
+          type: string
+          example: Ahmed Ali
+        customer_phone:
+          type: string
+          example: '777777777'
+        customer_email:
+          type: string
+          nullable: true
+          example: ahmed@example.com
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+          - pending
+          - confirmed
+          - cancelled
+          - completed
+          - no_show
+          example: pending
+        notes:
+          type: string
+          nullable: true
+          example: I need consultation
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - business_id
+      - bookable_service_id
+      - customer_name
+      - customer_phone
+      - start_at
+      - end_at
+      - status
+    Availability:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: '2026-05-10'
+        business_id:
+          type: integer
+          example: 1
+        bookable_service_id:
+          type: integer
+          example: 1
+        duration_minutes:
+          type: integer
+          example: 30
+        slot_interval_minutes:
+          type: integer
+          example: 30
+        available_slots:
+          type: array
+          items:
+            type: string
+            example: '09:00'
+          example:
+          - '09:00'
+          - '09:30'
+          - '10:00'
+      required:
+      - date
+      - business_id
+      - bookable_service_id
+      - duration_minutes
+      - slot_interval_minutes
+      - available_slots
+paths:
+  "/api/v1/auth/register":
+    post:
+      summary: Register a new user
+      tags:
+      - Auth
+      parameters: []
+      responses:
+        '201':
+          description: account created
+        '422':
+          description: validation error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    full_name:
+                      type: string
+                      example: Osama Yeslam
+                    email:
+                      type: string
+                      example: osama@example.com
+                    password:
+                      type: string
+                      example: password123
+                    password_confirmation:
+                      type: string
+                      example: password123
+                  required:
+                  - full_name
+                  - email
+                  - password
+                  - password_confirmation
+              required:
+              - user
+  "/api/v1/auth/login":
+    post:
+      summary: Login user
+      tags:
+      - Auth
+      parameters: []
+      responses:
+        '200':
+          description: logged in successfully
+        '401':
+          description: invalid credentials
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                      example: osama@example.com
+                    password:
+                      type: string
+                      example: password123
+                  required:
+                  - email
+                  - password
+              required:
+              - user
+  "/api/v1/auth/me":
+    get:
+      summary: Get current authenticated user
+      tags:
+      - Auth
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: current user returned
+        '401':
+          description: unauthorized
+  "/api/v1/businesses/{business_id}/availability":
+    parameters:
+    - name: business_id
+      in: path
+      description: Business ID
+      required: true
+      schema:
+        type: integer
+    - name: bookable_service_id
+      in: query
+      required: true
+      schema:
+        type: integer
+        example: 1
+      description: Bookable Service ID
+    - name: date
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+        example: '2026-05-10'
+      description: Date to check availability
+    get:
+      summary: Get available booking slots
+      tags:
+      - Availability
+      responses:
+        '200':
+          description: available slots returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    "$ref": "#/components/schemas/Availability"
+                required:
+                - success
+                - data
+        '422':
+          description: invalid date
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/api/v1/businesses/{business_id}/bookable_services":
+    parameters:
+    - name: business_id
+      in: path
+      description: Business ID
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: List bookable services for a business
+      tags:
+      - Bookable Services
+      responses:
+        '200':
+          description: bookable services returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/BookableService"
+                required:
+                - success
+                - data
+        '404':
+          description: business not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create a bookable service
+      tags:
+      - Bookable Services
+      security:
+      - bearerAuth: []
+      parameters: []
+      responses:
+        '201':
+          description: bookable service created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Bookable service created successfully
+                  data:
+                    "$ref": "#/components/schemas/BookableService"
+                required:
+                - success
+                - message
+                - data
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: business not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookable_service:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Consultation
+                    description:
+                      type: string
+                      example: Software consultation session
+                    duration_minutes:
+                      type: integer
+                      example: 30
+                    price:
+                      type: number
+                      format: float
+                      example: 20.0
+                    is_active:
+                      type: boolean
+                      example: true
+                  required:
+                  - name
+                  - duration_minutes
+              required:
+              - bookable_service
+  "/api/v1/bookable_services/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: Bookable Service ID
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: Get bookable service details
+      tags:
+      - Bookable Services
+      responses:
+        '200':
+          description: bookable service returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    "$ref": "#/components/schemas/BookableService"
+                required:
+                - success
+                - data
+        '404':
+          description: bookable service not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+    patch:
+      summary: Update a bookable service
+      tags:
+      - Bookable Services
+      security:
+      - bearerAuth: []
+      parameters: []
+      responses:
+        '200':
+          description: bookable service updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Bookable service updated successfully
+                  data:
+                    "$ref": "#/components/schemas/BookableService"
+                required:
+                - success
+                - message
+                - data
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: bookable service not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookable_service:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Updated Consultation
+                    description:
+                      type: string
+                      example: Updated description
+                    duration_minutes:
+                      type: integer
+                      example: 45
+                    price:
+                      type: number
+                      format: float
+                      example: 30.0
+                    is_active:
+                      type: boolean
+                      example: true
+              required:
+              - bookable_service
+    delete:
+      summary: Delete a bookable service
+      tags:
+      - Bookable Services
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: bookable service deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Bookable service deleted successfully
+                required:
+                - success
+                - message
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: bookable service not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/api/v1/businesses/{business_id}/bookings":
+    parameters:
+    - name: business_id
+      in: path
+      description: Business ID
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: List bookings for owned business
+      tags:
+      - Bookings
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - pending
+          - confirmed
+          - cancelled
+          - completed
+          - no_show
+      - name: date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+          example: '2026-05-10'
+      - name: bookable_service_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          example: 1
+      - name: customer_phone
+        in: query
+        required: false
+        schema:
+          type: string
+          example: '777777777'
+      - name: upcoming
+        in: query
+        required: false
+        schema:
+          type: boolean
+          example: true
+      - name: past
+        in: query
+        required: false
+        schema:
+          type: boolean
+          example: false
+      responses:
+        '200':
+          description: bookings returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/Booking"
+                required:
+                - success
+                - data
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create booking
+      tags:
+      - Bookings
+      parameters: []
+      responses:
+        '201':
+          description: booking created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Booking created successfully
+                  data:
+                    "$ref": "#/components/schemas/Booking"
+                required:
+                - success
+                - message
+                - data
+        '422':
+          description: validation or business rule error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                booking:
+                  type: object
+                  properties:
+                    bookable_service_id:
+                      type: integer
+                      example: 1
+                    customer_name:
+                      type: string
+                      example: Ahmed Ali
+                    customer_phone:
+                      type: string
+                      example: '777777777'
+                    customer_email:
+                      type: string
+                      example: ahmed@example.com
+                    start_at:
+                      type: string
+                      format: date-time
+                    notes:
+                      type: string
+                      example: I need consultation
+                  required:
+                  - bookable_service_id
+                  - customer_name
+                  - customer_phone
+                  - start_at
+              required:
+              - booking
+  "/api/v1/bookings/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: Booking ID
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: Get booking details
+      tags:
+      - Bookings
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: booking returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    "$ref": "#/components/schemas/Booking"
+                required:
+                - success
+                - data
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: booking not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/api/v1/bookings/{id}/confirm":
+    parameters:
+    - name: id
+      in: path
+      description: Booking ID
+      required: true
+      schema:
+        type: integer
+    patch:
+      summary: Confirm booking
+      tags:
+      - Bookings
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: booking confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Booking confirmed successfully
+                  data:
+                    "$ref": "#/components/schemas/Booking"
+                required:
+                - success
+                - message
+                - data
+        '422':
+          description: invalid status transition
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/api/v1/bookings/{id}/cancel":
+    parameters:
+    - name: id
+      in: path
+      description: Booking ID
+      required: true
+      schema:
+        type: integer
+    patch:
+      summary: Cancel booking
+      tags:
+      - Bookings
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: booking cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Booking cancelled successfully
+                  data:
+                    "$ref": "#/components/schemas/Booking"
+                required:
+                - success
+                - message
+                - data
+  "/api/v1/bookings/{id}/complete":
+    parameters:
+    - name: id
+      in: path
+      description: Booking ID
+      required: true
+      schema:
+        type: integer
+    patch:
+      summary: Complete booking
+      tags:
+      - Bookings
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: booking completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Booking completed successfully
+                  data:
+                    "$ref": "#/components/schemas/Booking"
+                required:
+                - success
+                - message
+                - data
+        '422':
+          description: booking has not ended yet
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/api/v1/bookings/{id}/no_show":
+    parameters:
+    - name: id
+      in: path
+      description: Booking ID
+      required: true
+      schema:
+        type: integer
+    patch:
+      summary: Mark booking as no-show
+      tags:
+      - Bookings
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: booking marked as no-show
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Booking marked as no-show successfully
+                  data:
+                    "$ref": "#/components/schemas/Booking"
+                required:
+                - success
+                - message
+                - data
+        '422':
+          description: booking has not started yet
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+  "/api/v1/businesses":
+    get:
+      summary: List current user's businesses
+      tags:
+      - Businesses
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: businesses returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/Business"
+                required:
+                - success
+                - data
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create a business
+      tags:
+      - Businesses
+      security:
+      - bearerAuth: []
+      parameters: []
+      responses:
+        '201':
+          description: business created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Business created successfully
+                  data:
+                    "$ref": "#/components/schemas/Business"
+                required:
+                - success
+                - message
+                - data
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                business:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Bookly Center
+                    description:
+                      type: string
+                      example: We provide consulting services
+                    phone:
+                      type: string
+                      example: '777777777'
+                    email:
+                      type: string
+                      example: info@example.com
+                    address:
+                      type: string
+                      example: Aden - Yemen
+                    is_active:
+                      type: boolean
+                      example: true
+                  required:
+                  - name
+              required:
+              - business
+  "/api/v1/businesses/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: Business ID
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: Get business details
+      tags:
+      - Businesses
+      responses:
+        '200':
+          description: business returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    "$ref": "#/components/schemas/Business"
+                required:
+                - success
+                - data
+        '404':
+          description: business not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+    patch:
+      summary: Update a business
+      tags:
+      - Businesses
+      security:
+      - bearerAuth: []
+      parameters: []
+      responses:
+        '200':
+          description: business updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Business updated successfully
+                  data:
+                    "$ref": "#/components/schemas/Business"
+                required:
+                - success
+                - message
+                - data
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: business not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                business:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Updated Bookly Center
+                    description:
+                      type: string
+                      example: Updated description
+                    phone:
+                      type: string
+                      example: '711111111'
+                    email:
+                      type: string
+                      example: updated@example.com
+                    address:
+                      type: string
+                      example: Aden - Yemen
+                    is_active:
+                      type: boolean
+                      example: true
+              required:
+              - business
+  "/api/v1/businesses/{business_id}/working_hours":
+    parameters:
+    - name: business_id
+      in: path
+      description: Business ID
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: List working hours for a business
+      tags:
+      - Working Hours
+      responses:
+        '200':
+          description: working hours returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/WorkingHour"
+                required:
+                - success
+                - data
+        '404':
+          description: business not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create working hour
+      tags:
+      - Working Hours
+      security:
+      - bearerAuth: []
+      parameters: []
+      responses:
+        '201':
+          description: working hour created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Working hour created successfully
+                  data:
+                    "$ref": "#/components/schemas/WorkingHour"
+                required:
+                - success
+                - message
+                - data
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                working_hour:
+                  type: object
+                  properties:
+                    day_of_week:
+                      type: string
+                      enum:
+                      - sunday
+                      - monday
+                      - tuesday
+                      - wednesday
+                      - thursday
+                      - friday
+                      - saturday
+                      example: sunday
+                    start_time:
+                      type: string
+                      example: '09:00'
+                    end_time:
+                      type: string
+                      example: '17:00'
+                    is_closed:
+                      type: boolean
+                      example: false
+                  required:
+                  - day_of_week
+              required:
+              - working_hour
+  "/api/v1/working_hours/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: Working Hour ID
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: Get working hour details
+      tags:
+      - Working Hours
+      responses:
+        '200':
+          description: working hour returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    "$ref": "#/components/schemas/WorkingHour"
+                required:
+                - success
+                - data
+        '404':
+          description: working hour not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+    patch:
+      summary: Update working hour
+      tags:
+      - Working Hours
+      security:
+      - bearerAuth: []
+      parameters: []
+      responses:
+        '200':
+          description: working hour updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Working hour updated successfully
+                  data:
+                    "$ref": "#/components/schemas/WorkingHour"
+                required:
+                - success
+                - message
+                - data
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: working hour not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '422':
+          description: validation error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                working_hour:
+                  type: object
+                  properties:
+                    day_of_week:
+                      type: string
+                      enum:
+                      - sunday
+                      - monday
+                      - tuesday
+                      - wednesday
+                      - thursday
+                      - friday
+                      - saturday
+                      example: sunday
+                    start_time:
+                      type: string
+                      example: '08:00'
+                    end_time:
+                      type: string
+                      example: '16:00'
+                    is_closed:
+                      type: boolean
+                      example: false
+              required:
+              - working_hour
+    delete:
+      summary: Delete working hour
+      tags:
+      - Working Hours
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: working hour deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Working hour deleted successfully
+                required:
+                - success
+                - message
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"
+        '404':
+          description: working hour not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorResponse"

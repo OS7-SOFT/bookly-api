@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  business: one
+  bookable_service: one
+  customer_name: MyString
+  customer_phone: MyString
+  customer_email: MyString
+  start_at: 2026-04-26 23:40:48
+  end_at: 2026-04-26 23:40:48
+  status: 1
+  notes: MyText
+
+two:
+  business: two
+  bookable_service: two
+  customer_name: MyString
+  customer_phone: MyString
+  customer_email: MyString
+  start_at: 2026-04-26 23:40:48
+  end_at: 2026-04-26 23:40:48
+  status: 1
+  notes: MyText
