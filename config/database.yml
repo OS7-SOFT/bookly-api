@@ -20,3 +20,4 @@ production:
   username: <%= ENV["BOOKLY_DATABASE_USERNAME"] %>
   password: <%= ENV["BOOKLY_DATABASE_PASSWORD"] %>
   host: <%= ENV["BOOKLY_DATABASE_HOST"] %>
+  url: <%= ENV["DATABASE_URL"] %>
